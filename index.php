@@ -3,6 +3,9 @@ include "libchart/classes/libchart.php";
 
 include('../config.php');
 
+// query to clean up old inactive accounts
+// SELECT * FROM `accounts` WHERE `active` = 0 AND  DATE(created_at) < DATE(NOW() - INTERVAL 3 MONTH)
+
 $sql = "
     SELECT 
         EXTRACT(MONTH FROM created_at) as month, 
@@ -24,6 +27,7 @@ $chart = new VerticalBarChart(600,500);
 $dataSet = new XYDataSet();
 
 $max_month = 0;
+$total = 0;
 $date_month = '';
 while ($line = mysql_fetch_array($query)) {
     if ($line['SumField'] > $max_month) {
@@ -31,6 +35,7 @@ while ($line = mysql_fetch_array($query)) {
         $date_month = $line['month'] . "-" . $line['year'];
     }
     $dataSet->addPoint(new Point($line['month'] . "-" . $line['year'], $line['SumField']));
+    $total += $line['SumField'];
 }
 
 $chart->setDataSet($dataSet);
@@ -76,5 +81,6 @@ $chart->render("generated/daily.png");
         <div><img alt="Vertical bars chart" src="generated/daily.png" style="border: 1px solid gray;"/></div>
         <div>the day with the most subscriptions: <?php echo $date; ?> (<?php echo $max ?>)</div>
         <div>the month with the most subscriptions: <?php echo $date_month; ?> (<?php echo $max_month ?>)</div>
+        <div>total of subscriptions: <?php echo $total; ?></div>
     </body>
 </html>
